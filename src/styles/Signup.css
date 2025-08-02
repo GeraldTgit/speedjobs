@@ -1,0 +1,95 @@
+.page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+  background-color: #f9f9f9;
+}
+
+.signup-card-container {
+  background: black;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo-container {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.company-logo {
+  height: 50px;
+}
+
+.signup-wrapper h1 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.separator-text {
+  text-align: center;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+  color: #666;
+}
+
+.email-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.email-auth-form input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.email-auth-form button {
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.email-auth-form button:hover {
+  background-color: #0056b3;
+}
+
+.toggle-mode {
+  margin-top: 1rem;
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.error {
+  color: red;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.success {
+  color: green;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Responsive design */
+@media (min-width: 600px) {
+  .signup-card-container {
+    padding: 3rem;
+  }
+}

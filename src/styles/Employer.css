@@ -1,0 +1,87 @@
+.employer-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f7fbff 0%, #e3f2fd 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.employer-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(30, 136, 229, 0.1);
+  padding: 2.5rem 1.5rem 6rem 1.5rem;
+  max-width: 350px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.employer-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 1.2rem;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.employer-content {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.employer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 -2px 12px rgba(25, 118, 210, 0.08);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.7rem 0;
+  z-index: 10;
+}
+
+.employer-nav button {
+  background: #1976d2;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.9rem 0.5rem;
+  border-radius: 10px;
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(30, 136, 229, 0.08);
+}
+
+.employer-nav button.active,
+.employer-nav button:hover {
+  background: #1565c0;
+  color: #fff;
+  transform: translateY(-2px) scale(1.03);
+}
+
+@media (min-width: 600px) {
+  .employer-card {
+    max-width: 420px;
+    padding: 3rem 2rem 7rem 2rem;
+  }
+  .employer-nav {
+    max-width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 0 0 18px 18px;
+  }
+  .employer-nav button {
+    padding: 1rem 0.7rem;
+    font-size: 1.2rem;
+  }
+}

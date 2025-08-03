@@ -1,12 +1,16 @@
-import React, { useState } from "react";
 import "../styles/ListJob.css";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+
+
 
 export default function ListJob() {
   const [form, setForm] = useState({
     category: "",
     location: "",
-    date: "",
+    duration_from: "",
+    duration_upto: "",
     start_of_shift: "",
     end_of_shift: "",
     break: "",
@@ -15,10 +19,29 @@ export default function ListJob() {
     short_desc: "",
     long_desc: "",
   });
+
+  const { id } = useParams();  // Get job ID from URL
+
+  useEffect(() => {
+    if (id) {
+      const token = localStorage.getItem("token");
+      axios
+        .get(`http://127.0.0.1:8000/api/joblist/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => {
+          setForm(res.data.job);
+        })
+        .catch(() => console.error("Failed to load job for editing"));
+    }
+  }, [id]);
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async (e) => {
@@ -57,11 +80,22 @@ export default function ListJob() {
     <div className="list-job-container">
       <form className="list-job-form" onSubmit={handleSave}>
         <h2>List a Job</h2>
+        if {id} {
+          <p className="job-id">Job ID: {id}</p>
+        }
         <input
           type="text"
           name="category"
           placeholder="Category"
-          value={form.category}
+          value={form.category || ""}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="text"
+          name="short_desc"
+          placeholder="Short Description"
+          value={form.short_desc || ""}
           onChange={handleChange}
           required
         />
@@ -69,18 +103,55 @@ export default function ListJob() {
           type="text"
           name="location"
           placeholder="Location"
-          value={form.location}
+          value={form.location || ""}
           onChange={handleChange}
           required
         />
+        <p className="duration-text">Start Date:</p>
         <input
           type="date"
-          name="date"
-          placeholder="Date"
-          value={form.date || ""}
+          name="duration_from"
+          placeholder="Start Date"
+          value={form.duration_from || ""}
           onChange={handleChange}
           required
         />
+        <p className="duration-text">End Date:</p>
+        <input
+          type="date"
+          name="duration_upto"
+          placeholder="End Date"
+          value={form.duration_upto || ""}
+          onChange={handleChange}
+          required
+        />
+        {/* Duration difference and warning */}
+        {form.duration_from && form.duration_upto && (() => {
+          const from = new Date(form.duration_from);
+          const to = new Date(form.duration_upto);
+          if (from > to) {
+            return (
+              <div style={{ color: "#e53935", marginBottom: "0.5rem", fontWeight: "600" }}>
+                Warning: "From" date/time is later than "To" date/time!
+              </div>
+            );
+          } else if (from.getTime() === to.getTime()) {
+            return (
+              <div style={{ color: "#1976d2", marginBottom: "0.5rem", fontWeight: "500" }}>
+                Duration: Less than a day only
+              </div>
+            );
+          } else {
+            const diffMs = to - from;
+            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            return (
+              <div style={{ color: "#1976d2", marginBottom: "0.5rem", fontWeight: "500" }}>
+                Duration: {diffDays} day(s)
+              </div>
+            );
+          }
+        })()}
+        <p className="duration-text">Shift starts at:</p>
         <input
           type="time"
           name="start_of_shift"
@@ -89,6 +160,7 @@ export default function ListJob() {
           onChange={handleChange}
           required
         />
+        <p className="duration-text">Shift ends at:</p>
         <input
           type="time"
           name="end_of_shift"
@@ -140,7 +212,7 @@ export default function ListJob() {
           type="number"
           name="salary"
           placeholder="Salary"
-          value={form.salary}
+          value={form.salary || ""}
           onChange={handleChange}
           required
         />
@@ -148,21 +220,14 @@ export default function ListJob() {
           type="text"
           name="salary_condition"
           placeholder="Salary Condition"
-          value={form.salaryCondition}
+          value={form.salary_condition || ""}
           onChange={handleChange}
         />
-        <input
-          type="text"
-          name="short_desc"
-          placeholder="Short Description"
-          value={form.shoft_desc}
-          onChange={handleChange}
-          required
-        />
+        
         <textarea
           name="long_desc"
           placeholder="Long Description"
-          value={form.long_desc}
+          value={form.long_desc || ""}
           onChange={handleChange}
           rows={4}
           required

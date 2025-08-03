@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Employer.css";
+import "../styles/PartTimer.css";
 import axios from "axios";
 
 export default function Employer() {
   const [active, setActive] = useState("dashboard");
-  const [employerId, setEmployerId] = useState(null);
+  const [ParttimerId, setParttimerId] = useState(null);
   const [userName, setUserName] = useState(null);
   const [pictureUrl, setPictureUrl] = useState(null);
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ export default function Employer() {
     if (active === "list") {
       const token = localStorage.getItem("token");
       axios
-        .get("http://127.0.0.1:8000/api/employer/jobs", {
+        .get("http://127.0.0.1:8000/api/parttimer/jobs", {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => setJobs(res.data.jobs))
@@ -28,7 +28,7 @@ export default function Employer() {
     if (active === "profile") {
       const token = localStorage.getItem("token");
       axios
-        .get("http://127.0.0.1:8000/api/employer/profile", {
+        .get("http://127.0.0.1:8000/api/parttimer/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -36,12 +36,12 @@ export default function Employer() {
         .then((res) => {
           setUserName(res.data.name);
           setPictureUrl(res.data.picture_url);
-          setEmployerId(res.data.as_emp_id);
+          setParttimerId(res.data.as_prtmr_id);
         })
         .catch(() => {
           setUserName("Not found");
           setPictureUrl(null);
-          setEmployerId("Not found");
+          setParttimerId("Not found");
         });
     }
   }, [active]);
@@ -50,28 +50,9 @@ export default function Employer() {
     <div className="employer-container">
       <div className="employer-card">
         {/* Show "List a job" button at the top when List Job is active */}
-        {active === "list" && (
+        {active === "search" && (
         <div>
-          <button
-            className="list-job-btn"
-            style={{
-              marginBottom: "1rem",
-              padding: "0.9rem 1.5rem",
-              fontSize: "1.1rem",
-              borderRadius: "10px",
-              border: "none",
-              background: "#1976d2",
-              color: "#fff",
-              fontWeight: "600",
-              cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(30, 136, 229, 0.08)",
-              transition: "background 0.2s, transform 0.1s",
-            }}
-            onClick={() => navigate("/list-job")}
-          >
-            List a new job
-          </button>
-          
+
           <input
             type="text"
             placeholder="Search jobs..."
@@ -100,7 +81,7 @@ export default function Employer() {
       )}
         <div className="employer-content">
           {active === "dashboard" && <h2>Employer Dashboard</h2>}
-          {active === "search" && <h2>Search for Part-timers</h2>}
+          {active === "search" && <h2>Search for Part-time job</h2>}
           {active === "profile" && (
             <div>
               {pictureUrl && (
@@ -121,12 +102,12 @@ export default function Employer() {
                 <strong>Name:</strong> {userName ?? "Loading..."}
               </p>
               <p>
-                <strong>Employer ID:</strong> {employerId ?? "Loading..."}
+                <strong>Part-Timer ID:</strong> {ParttimerId ?? "Loading..."}
               </p>
             </div>
           )}
         </div>
-        <nav className="employer-nav">
+        <nav className="parttimer-nav">
           <button
             className={active === "dashboard" ? "active" : ""}
             onClick={() => setActive("dashboard")}
@@ -137,19 +118,13 @@ export default function Employer() {
             className={active === "search" ? "active" : ""}
             onClick={() => setActive("search")}
           >
-            Search for Part-timers
+            Search for Jobs
           </button>
           <button
             className={active === "list" ? "active" : ""}
             onClick={() => navigate("/Home")}
           >
             Home
-          </button>
-          <button
-            className={active === "list" ? "active" : ""}
-            onClick={() => setActive("list")}
-          >
-            List Job
           </button>
           <button
             className={active === "profile" ? "active" : ""}

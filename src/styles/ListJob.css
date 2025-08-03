@@ -39,6 +39,12 @@
   color: black;
 }
 
+.list-job-form p {
+  font-size: 1rem;
+  color: black;
+  margin: 0%;
+}
+
 .list-job-form textarea {
   padding: 0.8rem;
   border-radius: 10px;
@@ -48,6 +54,7 @@
   resize: none;
   background: #f7f9fc;
   transition: border 0.2s;
+  color: black;
 }
 
 .list-job-form input:focus,

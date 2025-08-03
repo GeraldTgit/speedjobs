@@ -139,18 +139,38 @@ async def google_auth(token_data: TokenData):
             status_code=500,
             detail=f"Internal server error: {str(e)}"
         )
+        
+# Helper function to get as_emp_id
+async def fetch_as_emp_id(user_id):
+    emp_result = supabase.from_("as_employer").select("as_emp_id").eq("id", user_id).maybe_single().execute()
+    if emp_result.data and "as_emp_id" in emp_result.data:
+        return emp_result.data["as_emp_id"]
+    else:
+        return None
+
+@app.get("/api/employer/as_emp_id")
+async def get_as_emp_id(user=Depends(get_current_user)):
+    try:
+        user_id = user.get("id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        as_emp_id = await fetch_as_emp_id(user_id)
+        if as_emp_id:
+            return {"as_emp_id": as_emp_id}
+        else:
+            raise HTTPException(status_code=404, detail="Employer ID not found")
+    except Exception as e:
+        logger.error(f"Error fetching employer ID: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/employer/profile")
 async def employer_profile(user=Depends(get_current_user)):
     try:
         user_id = user.get("id")
-        # Get user name and picture_url from users table
         user_result = supabase.from_("users").select("name, picture_url").eq("id", user_id).maybe_single().execute()
-        name = user_result.data["name"] if user_result.data and "name" in user_result.data else None
-        picture_url = user_result.data["picture_url"] if user_result.data and "picture_url" in user_result.data else None
-        # Get as_emp_id from as_employer table where id matches users.id
-        emp_result = supabase.from_("as_employer").select("as_emp_id").eq("id", user_id).maybe_single().execute()
-        as_emp_id = emp_result.data["as_emp_id"] if emp_result.data and "as_emp_id" in emp_result.data else None
+        name = user_result.data.get("name") if user_result.data else None
+        picture_url = user_result.data.get("picture_url") if user_result.data else None
+        as_emp_id = await fetch_as_emp_id(user_id)
         if name:
             return {"name": name, "picture_url": picture_url, "as_emp_id": as_emp_id}
         else:
@@ -159,11 +179,11 @@ async def employer_profile(user=Depends(get_current_user)):
         logger.error(f"Error fetching employer profile: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-
 class JobForm(BaseModel):
     category: str
     location: str
-    date: str
+    duration_from: str
+    duration_upto: str
     start_of_shift: str
     end_of_shift: str
     break_: Optional[float] = 0  # renamed because "break" is a Python keyword
@@ -178,13 +198,13 @@ async def save_job(form: JobForm, user=Depends(get_current_user)):
         user_id = user.get("id")
 
         # Get as_emp_id from as_employer table
-        emp_result = supabase.from_("as_employer").select("as_emp_id").eq("id", user_id).maybe_single().execute()
-        as_emp_id = emp_result.data["as_emp_id"] if emp_result.data and "as_emp_id" in emp_result.data else None
+        as_emp_id = await fetch_as_emp_id(user_id)
 
         job_data = {
             "category": form.category,
             "location": form.location,
-            "date": form.date,
+            "duration_from": form.duration_from,
+            "duration_upto": form.duration_upto,
             "start_of_shift": form.start_of_shift,
             "end_of_shift": form.end_of_shift,
             "break": form.break_,
@@ -193,6 +213,7 @@ async def save_job(form: JobForm, user=Depends(get_current_user)):
             "short_desc": form.short_desc,
             "long_desc": form.long_desc,
             "as_emp_id": as_emp_id,
+            "status": "active",  # Default status
         }
 
         response = supabase.from_("joblist").insert(job_data).execute()
@@ -204,4 +225,56 @@ async def save_job(form: JobForm, user=Depends(get_current_user)):
         return {"status": "success", "message": "Job saved successfully", "job": response.data}
     except Exception as e:
         logger.error(f"Error saving job: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/employer/jobs")
+async def get_employer_jobs(user=Depends(get_current_user)):
+    try:
+        user_id = user.get("id")
+        # Get as_emp_id
+        as_emp_id = await fetch_as_emp_id(user_id)
+
+        if not as_emp_id:
+            raise HTTPException(status_code=404, detail="Employer ID not found")
+
+        jobs_result = supabase.from_("joblist").select("id, category, short_desc, created_at, status").eq("as_emp_id", as_emp_id).execute()
+        return {"jobs": jobs_result.data}
+    except Exception as e:
+        logger.error(f"Error fetching employer jobs: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+    
+@app.get("/api/joblist/{job_id}")
+async def get_job_by_id(job_id: str, user=Depends(get_current_user)):
+    try:
+        user_id = user.get("id")
+        as_emp_id = await fetch_as_emp_id(user_id)
+
+        if not as_emp_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        job_result = supabase.from_("joblist").select("*").eq("id", job_id).eq("as_emp_id", as_emp_id).maybe_single().execute()
+        if not job_result.data:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        return {"job": job_result.data}
+    except Exception as e:
+        logger.error(f"Error fetching job by ID: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+# Part-timer profile
+@app.get("/api/parttimer/profile")
+async def parttimer_profile(user=Depends(get_current_user)):
+    try:
+        user_id = user.get("id")
+        user_result = supabase.from_("users").select("name, picture_url").eq("id", user_id).maybe_single().execute()
+        name = user_result.data.get("name") if user_result.data else None
+        picture_url = user_result.data.get("picture_url") if user_result.data else None
+        as_prtmr_id = await fetch_as_emp_id(user_id)
+        if name:
+            return {"name": name, "picture_url": picture_url, "as_prtmr_id": as_prtmr_id}
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        logger.error(f"Error fetching part-timer profile: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")

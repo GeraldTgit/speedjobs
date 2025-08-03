@@ -100,7 +100,36 @@ export default function Employer() {
       )}
         <div className="employer-content">
           {active === "dashboard" && <h2>Employer Dashboard</h2>}
-          {active === "search" && <h2>Search for Part-timers</h2>}
+          {active === "search" &&  
+          (<div>
+            <input
+              type="text"
+              placeholder="Search for Part-timers..."
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ padding: "0.6rem", marginBottom: "1rem", width: "100%", borderRadius: "5px", border: "1px solid #ccc" }}
+            />
+
+            {/* TOBE CONTINUE :: Assuming prtmrs is fetched from an API or state */}
+            <div className="prtmr-cards">
+              {prtmrs
+                .filter(prtmrs => prtmrs.category.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((prtmrs) => (
+                  <div className="prtmr-card" key={prtmr.id} >
+                    <div className="prtmr-card-row" onClick={() => navigate(`/prtmr-profile/${prtmr.id}`)} style={{ cursor: "pointer" }}>
+                      <p><strong>{prtmr.name}</strong></p>
+                      <p className="right">{prtmr.location}</p>
+                    </div>
+                    <div className="prtmr-card-row">
+                      <p>{prtmr.specialty}</p>
+                      <p className="right"><strong>{prtmr.stars}</strong></p>
+                    </div>
+                    <p className="smaller">part-timer id: {prtmr.id}</p>
+                  </div>
+                ))}
+            </div>
+          </div>
+          )
+          }
           {active === "profile" && (
             <div>
               {pictureUrl && (

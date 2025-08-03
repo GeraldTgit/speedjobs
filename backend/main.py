@@ -139,14 +139,21 @@ async def google_auth(token_data: TokenData):
             status_code=500,
             detail=f"Internal server error: {str(e)}"
         )
-        
+     
+# AS EMPLOYER API ENDPOINTS        
 # Helper function to get as_emp_id
 async def fetch_as_emp_id(user_id):
-    emp_result = supabase.from_("as_employer").select("as_emp_id").eq("id", user_id).maybe_single().execute()
-    if emp_result.data and "as_emp_id" in emp_result.data:
-        return emp_result.data["as_emp_id"]
-    else:
-        return None
+    try:
+        emp_result = supabase.from_("as_employer").select("as_emp_id").eq("id", user_id).maybe_single().execute()
+        if emp_result.data and "as_emp_id" in emp_result.data:
+            return emp_result.data["as_emp_id"]
+    except Exception as e:
+        # Optional: log the error if needed
+        logger.warning(f"fetch_as_emp_id failed: {str(e)}")
+    
+    # Do nothing if not found or error — return None
+    return ""
+
 
 @app.get("/api/employer/as_emp_id")
 async def get_as_emp_id(user=Depends(get_current_user)):
@@ -177,6 +184,30 @@ async def employer_profile(user=Depends(get_current_user)):
             raise HTTPException(status_code=404, detail="User not found")
     except Exception as e:
         logger.error(f"Error fetching employer profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+# Check for existing employer account and save if not exists
+@app.post("/api/save_as_employer")
+async def check_or_create_employer(user=Depends(get_current_user)):
+    try:
+        user_id = user.get("id")
+
+        # Check if already exists
+        as_emp_id = await fetch_as_emp_id(user_id)
+
+        if as_emp_id:
+            return {"status": "exists", "as_emp_id": as_emp_id}
+
+        # Insert new employer record
+        response = supabase.from_("as_employer").insert({"id": user_id}).execute()
+
+        if response.error:
+            logger.error(f"Insertion error: {response.error}")
+            raise HTTPException(status_code=500, detail="Failed to create employer account")
+
+        return {"status": "created", "as_emp_id": response.data[0]["as_emp_id"]}
+    except Exception as e:
+        logger.error(f"Error checking or creating employer: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 class JobForm(BaseModel):
@@ -262,7 +293,36 @@ async def get_job_by_id(job_id: str, user=Depends(get_current_user)):
         logger.error(f"Error fetching job by ID: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+
+# AS PART-TIMER API ENDPOINTS
 # Part-timer profile
+async def fetch_as_prtmr_id(user_id):
+    try:
+        prtmr_result = supabase.from_("as_parttimer").select("as_prtmr_id").eq("id", user_id).maybe_single().execute()
+        if prtmr_result.data and "as_prtmr_id" in prtmr_result.data:
+            return prtmr_result.data["as_prtmr_id"]
+    except Exception as e:
+        # Optional: log the error if needed
+        logger.warning(f"fetch_as_prtmr_id failed: {str(e)}")
+    
+    # Do nothing if not found or error — return None
+    return ""
+
+@app.get("/api/parttimer/as_prtmr_id")
+async def get_as_prtmr_id(user=Depends(get_current_user)):
+    try:
+        user_id = user.get("id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        as_prtmr_id = await fetch_as_prtmr_id(user_id)
+        if as_prtmr_id:
+            return {"as_prtmr_id": as_prtmr_id}
+        else:
+            raise HTTPException(status_code=404, detail="Part-Timer ID not found")
+    except Exception as e:
+        logger.error(f"Error fetching part-timer ID: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 @app.get("/api/parttimer/profile")
 async def parttimer_profile(user=Depends(get_current_user)):
     try:
@@ -270,11 +330,35 @@ async def parttimer_profile(user=Depends(get_current_user)):
         user_result = supabase.from_("users").select("name, picture_url").eq("id", user_id).maybe_single().execute()
         name = user_result.data.get("name") if user_result.data else None
         picture_url = user_result.data.get("picture_url") if user_result.data else None
-        as_prtmr_id = await fetch_as_emp_id(user_id)
+        as_prtmr_id = await fetch_as_prtmr_id(user_id)
         if name:
             return {"name": name, "picture_url": picture_url, "as_prtmr_id": as_prtmr_id}
         else:
             raise HTTPException(status_code=404, detail="User not found")
     except Exception as e:
         logger.error(f"Error fetching part-timer profile: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+# Check for existing employer account and save if not exists
+@app.post("/api/save_as_prtmr")
+async def check_or_create_prtmr(user=Depends(get_current_user)):
+    try:
+        user_id = user.get("id")
+
+        # Check if already exists
+        as_prtmr_id = await fetch_as_prtmr_id(user_id)
+
+        if as_prtmr_id:
+            return {"status": "exists", "as_prtmr_id": as_prtmr_id}
+
+        # Insert new parttimer record
+        response = supabase.from_("as_parttimer").insert({"id": user_id}).execute()
+
+        if response.error:
+            logger.error(f"Insertion error: {response.error}")
+            raise HTTPException(status_code=500, detail="Failed to create part-timer account")
+
+        return {"status": "created", "as_prtmr_id": response.data[0]["as_prtmr_id"]}
+    except Exception as e:
+        logger.error(f"Error checking or creating part-timer: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")

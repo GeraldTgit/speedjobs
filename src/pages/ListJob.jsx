@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
 
-
 export default function ListJob() {
   const [form, setForm] = useState({
     category: "",

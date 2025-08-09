@@ -49,7 +49,7 @@ export default function Parttimer() {
 
   useEffect(() => {
     if (active === "search") {
-      axios.get("http://127.0.0.1:8000/api/parttimer/jobs", {
+      axios.get("http://127.0.0.1:8000/api/parttimer/job", {
         headers: { Authorization: `Bearer ${getToken()}` }
       }).then((res) => setJobs(res.data.jobs))
         .catch((err) => console.error("Failed to load jobs", err));

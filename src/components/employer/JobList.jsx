@@ -10,7 +10,7 @@ export function JobList({ jobs, searchQuery, setSearchQuery, setIsEditing, isEdi
       <button
         className="list-job-btn"
         style={{ marginBottom: "1rem" }}
-        onClick={() => navigate("/list-job")}
+        onClick={() => navigate("/job")}
       >
         List a new job
       </button>
@@ -29,7 +29,7 @@ export function JobList({ jobs, searchQuery, setSearchQuery, setIsEditing, isEdi
             <div className="job-card" key={job.id}>
               <div
                 className="job-card-row"
-                onClick={() => navigate(`/list-job/${job.id}`)}
+                onClick={() => navigate(`/employer/job/${job.id}`)}
                 style={{ cursor: "pointer" }}
               >
                 <p><strong>{job.category}</strong></p>

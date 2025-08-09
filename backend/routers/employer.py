@@ -118,7 +118,7 @@ async def location_update(
  
 
 
-@router.get("/jobs")
+@router.get("/job")
 async def get_employer_jobs(user=Depends(get_current_user)):
     try:
         user_id = user.get("id")

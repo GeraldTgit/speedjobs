@@ -1,8 +1,7 @@
 import "../styles/ListJob.css";
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import axios from "axios";
-
 
 export default function ListJob() {
   const [form, setForm] = useState({
@@ -19,7 +18,9 @@ export default function ListJob() {
     long_desc: "",
   });
 
-  const { id } = useParams();  // Get job ID from URL
+  const { id } = useParams(); // Get job ID from URL
+  const location = useLocation();
+  const isPartTimer = location.pathname.startsWith("/part-timer");
 
   useEffect(() => {
     if (id) {
@@ -38,13 +39,19 @@ export default function ListJob() {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    // Restrict save for part-timer URLs
+    if (isPartTimer) {
+      alert("Part-timers are not allowed to edit jobs.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("http://localhost:8000/api/joblist/listNewJob", {
@@ -70,7 +77,6 @@ export default function ListJob() {
     }
   };
 
-
   const handleCancel = () => {
     navigate("/employer");
   };
@@ -78,10 +84,9 @@ export default function ListJob() {
   return (
     <div className="list-job-container">
       <form className="list-job-form" onSubmit={handleSave}>
-        <h2>List a Job</h2>
-        if {id} {
-          <p className="job-id">Job ID: {id}</p>
-        }
+        <h2>{id ? "Edit Job" : "List a Job"}</h2>
+        {id && <p className="job-id">Job ID: {id}</p>}
+
         <input
           type="text"
           name="category"
@@ -89,6 +94,7 @@ export default function ListJob() {
           value={form.category || ""}
           onChange={handleChange}
           required
+          disabled={isPartTimer}
         />
         <input
           type="text"
@@ -97,6 +103,7 @@ export default function ListJob() {
           value={form.short_desc || ""}
           onChange={handleChange}
           required
+          disabled={isPartTimer}
         />
         <input
           type="text"
@@ -105,25 +112,27 @@ export default function ListJob() {
           value={form.location || ""}
           onChange={handleChange}
           required
+          disabled={isPartTimer}
         />
         <p className="duration-text">Start Date:</p>
         <input
           type="date"
           name="duration_from"
-          placeholder="Start Date"
           value={form.duration_from || ""}
           onChange={handleChange}
           required
+          disabled={isPartTimer}
         />
         <p className="duration-text">End Date:</p>
         <input
           type="date"
           name="duration_upto"
-          placeholder="End Date"
           value={form.duration_upto || ""}
           onChange={handleChange}
           required
+          disabled={isPartTimer}
         />
+
         {/* Duration difference and warning */}
         {form.duration_from && form.duration_upto && (() => {
           const from = new Date(form.duration_from);
@@ -150,23 +159,24 @@ export default function ListJob() {
             );
           }
         })()}
+
         <p className="duration-text">Shift starts at:</p>
         <input
           type="time"
           name="start_of_shift"
-          placeholder="Start of shift"
           value={form.start_of_shift || ""}
           onChange={handleChange}
           required
+          disabled={isPartTimer}
         />
         <p className="duration-text">Shift ends at:</p>
         <input
           type="time"
           name="end_of_shift"
-          placeholder="End of shift"
           value={form.end_of_shift || ""}
           onChange={handleChange}
           required
+          disabled={isPartTimer}
         />
         <input
           type="float"
@@ -174,14 +184,16 @@ export default function ListJob() {
           placeholder="Break (1 = 1 hour; 0.5 = 30 minutes)"
           value={form.break || ""}
           onChange={handleChange}
+          disabled={isPartTimer}
         />
+
         {/* Duration difference and warning */}
         {form.start_of_shift && form.end_of_shift && (() => {
           const [startHours, startMinutes] = form.start_of_shift.split(":").map(Number);
           const [endHours, endMinutes] = form.end_of_shift.split(":").map(Number);
           const start = new Date(0, 0, 0, startHours, startMinutes, 0);
           const end = new Date(0, 0, 0, endHours, endMinutes, 0);
-        
+
           if (start > end) {
             return (
               <div style={{ color: "#e53935", marginBottom: "0.5rem", fontWeight: "600" }}>
@@ -190,15 +202,12 @@ export default function ListJob() {
             );
           } else {
             let diffMs = end - start;
-          
-            // Subtract break (in milliseconds)
             const breakHours = parseFloat(form.break) || 0;
             const breakMs = breakHours * 60 * 60 * 1000;
-            diffMs = Math.max(0, diffMs - breakMs); // prevent negative duration
-          
+            diffMs = Math.max(0, diffMs - breakMs);
             const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
             const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
-          
+
             return (
               <div style={{ color: "#1976d2", marginBottom: "0.5rem", fontWeight: "500" }}>
                 Duration (less break): {diffHours} hour(s) {diffMinutes} minute(s)
@@ -214,6 +223,7 @@ export default function ListJob() {
           value={form.salary || ""}
           onChange={handleChange}
           required
+          disabled={isPartTimer}
         />
         <input
           type="text"
@@ -221,8 +231,8 @@ export default function ListJob() {
           placeholder="Salary Condition"
           value={form.salary_condition || ""}
           onChange={handleChange}
+          disabled={isPartTimer}
         />
-        
         <textarea
           name="long_desc"
           placeholder="Long Description"
@@ -230,9 +240,11 @@ export default function ListJob() {
           onChange={handleChange}
           rows={4}
           required
+          disabled={isPartTimer}
         />
+
         <div className="list-job-actions">
-          <button type="submit" className="save-btn" >Save</button>
+          {!isPartTimer && <button type="submit" className="save-btn">Save</button>}
           <button type="button" className="cancel-btn" onClick={handleCancel}>Cancel</button>
         </div>
       </form>

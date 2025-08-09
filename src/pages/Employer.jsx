@@ -28,7 +28,7 @@ export default function Employer() {
 
   useEffect(() => {
     if (active === "list") {
-      axios.get("http://127.0.0.1:8000/api/employer/jobs", {
+      axios.get("http://127.0.0.1:8000/api/employer/job", {
         headers: { Authorization: `Bearer ${getToken()}` }
       }).then((res) => setJobs(res.data.jobs))
         .catch((err) => console.error("Failed to load jobs", err));

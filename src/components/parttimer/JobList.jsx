@@ -25,7 +25,7 @@ export function JobList({ jobs, searchQuery, setSearchQuery }) {
             <div className="job-card" key={job.id}>
               <div
                 className="job-card-row"
-                onClick={() => navigate(`/list-job/${job.id}`)}
+                onClick={() => navigate(`/part-timer/job/${job.id}`)}
                 style={{ cursor: "pointer" }}
               >
                 <p><strong>{job.category}</strong></p>

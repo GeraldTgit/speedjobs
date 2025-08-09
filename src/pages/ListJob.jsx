@@ -47,7 +47,7 @@ export default function ListJob() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/api/joblist", {
+      const response = await fetch("http://localhost:8000/api/joblist/listNewJob", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

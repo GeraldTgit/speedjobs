@@ -15,7 +15,7 @@ export default function Home() {
   const handleEmployer = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.post('http://localhost:8000/api/save_as_employer', {}, {
+      const res = await axios.post('http://localhost:8000/api/employer/check_or_create_employer', {}, {
         headers: { Authorization: `Bearer ${token}` 
         }
       });
@@ -29,7 +29,7 @@ export default function Home() {
     const handlePartTimer = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.post('http://localhost:8000/api/save_as_prtmr', {}, {
+      const res = await axios.post('http://localhost:8000/api/parttimer/check_or_create_parttimer', {}, {
         headers: { Authorization: `Bearer ${token}` 
         }
       });

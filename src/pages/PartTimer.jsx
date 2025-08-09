@@ -1,28 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/PartTimer.css";
+import "../styles/Parttimer.css";
 import axios from "axios";
 
-export default function Employer() {
-  const [active, setActive] = useState("dashboard");
-  const [ParttimerId, setParttimerId] = useState(null);
-  const [userName, setUserName] = useState(null);
-  const [pictureUrl, setPictureUrl] = useState(null);
-  const navigate = useNavigate();
-  const [jobs, setJobs] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+import { JobList } from '../components/parttimer/JobList';
 
-  useEffect(() => {
-    if (active === "list") {
-      const token = localStorage.getItem("token");
-      axios
-        .get("http://127.0.0.1:8000/api/parttimer/jobs", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) => setJobs(res.data.jobs))
-        .catch((err) => console.error("Failed to load jobs", err));
-    }
-  }, [active]);
+export default function Parttimer() {
+  const [active, setActive] = useState("dashboard");
+  const [parttimerId, setParttimerId] = useState(null);
+  const [userName, setUserName] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [pictureUrl, setPictureUrl] = useState(null);
+  const [location, setLocation] = useState(null); // Initial location value
+  const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [prtmrs, setPrtmrs] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  
 
   useEffect(() => {
     if (active === "profile") {
@@ -36,54 +31,55 @@ export default function Employer() {
         .then((res) => {
           setUserName(res.data.name);
           setPictureUrl(res.data.picture_url);
+          setEmail(res.data.email);
           setParttimerId(res.data.as_prtmr_id);
+          setLocation(res.data.location);
         })
         .catch(() => {
           setUserName("Not found");
+          setEmail("Not found");
           setPictureUrl(null);
           setParttimerId("Not found");
+          setLocation("Not found");
         });
     }
   }, [active]);
 
-  return (
-    <div className="employer-container">
-      <div className="employer-card">
-        {/* Show "List a job" button at the top when List Job is active */}
-        {active === "search" && (
-        <div>
+  const getToken = () => localStorage.getItem("token");
 
-          <input
-            type="text"
-            placeholder="Search jobs..."
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ padding: "0.6rem", marginBottom: "1rem", width: "100%", borderRadius: "5px", border: "1px solid #ccc" }}
-          />
+  useEffect(() => {
+    if (active === "search") {
+      axios.get("http://127.0.0.1:8000/api/parttimer/jobs", {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      }).then((res) => setJobs(res.data.jobs))
+        .catch((err) => console.error("Failed to load jobs", err));
+    }
+  }, [active]);
+
+
+  return (
+    <div className="parttimer-container">
+      <div className="parttimer-card">
+        {/* Show "List a job" button at the top when List Job is active */}
+        {active === "list" && (
+        <div>
+          
       
-          <div className="job-cards">
-            {jobs
-              .filter(job => job.category.toLowerCase().includes(searchQuery.toLowerCase()))
-              .map((job) => (
-                <div className="job-card" key={job.id} >
-                  <div className="job-card-row" onClick={() => navigate(`/list-job/${job.id}`)} style={{ cursor: "pointer" }}>
-                    <p><strong>{job.category}</strong></p>
-                    <p className="right">{new Date(job.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <div className="job-card-row">
-                    <p>{job.short_desc}</p>
-                    <p className="right"><strong>{job.status}</strong></p>
-                  </div>
-                  <p className="smaller">job id: {job.id}</p>
-                </div>
-              ))}
-          </div>
         </div>
       )}
-        <div className="employer-content">
-          {active === "dashboard" && <h2>Employer Dashboard</h2>}
-          {active === "search" && <h2>Search for Part-time job</h2>}
+        <div className="parttimer-content">
+          {active === "dashboard" && <h2>Parttimer Dashboard</h2>}
+          {active === "search" &&  
+          (<div><JobList
+              jobs={jobs}
+             searchQuery={searchQuery}
+             setSearchQuery={setSearchQuery}
+            />
+          </div>
+          )
+          }
           {active === "profile" && (
-            <div>
+            <div style={{ position: "relative" }}>
               {pictureUrl && (
                 <img
                   src={pictureUrl}
@@ -98,12 +94,66 @@ export default function Employer() {
                   }}
                 />
               )}
+              <p><strong>Name:</strong> {userName ?? "Loading..."}</p>
+              <p><strong>Email:</strong> {email ?? "Loading..."}</p>
+              <p><strong>Part-Timer ID:</strong> {parttimerId ?? "Loading..."}</p>
+            
               <p>
-                <strong>Name:</strong> {userName ?? "Loading..."}
+                <strong>Location:</strong>{" "}
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    style={{ marginLeft: "0.5rem" }}
+                  />
+                ) : (
+                  location ?? "Not set"
+                )}
               </p>
-              <p>
-                <strong>Part-Timer ID:</strong> {ParttimerId ?? "Loading..."}
-              </p>
+              
+              <button
+                onClick={async () => {
+                  if (isEditing) {
+                    // Save location via API
+                    try {
+                      const token = localStorage.getItem("token");      
+                      await axios.post(
+                        'http://127.0.0.1:8000/api/parttimer/location_update',
+                        { location }, // sent as JSON
+                        {
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                          },
+                        }
+                      );
+                    
+                      alert("Location updated!");
+                    } catch (err) {
+                      console.error(err);
+                      alert("Error updating location.");
+                    }
+                  }
+                
+                  // Toggle editing state
+                  setIsEditing((prev) => !prev);
+                }}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  padding: "6px 12px",
+                  backgroundColor: "#1976d2",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                {isEditing ? "Save" : "Edit"}
+              </button>
+
             </div>
           )}
         </div>

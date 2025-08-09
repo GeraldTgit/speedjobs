@@ -1,4 +1,4 @@
-.employer-container {
+.parttimer-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #f7fbff 0%, #e3f2fd 100%);
   display: flex;
@@ -6,7 +6,7 @@
   justify-content: center;
 }
 
-.employer-card {
+.parttimer-card {
   background: #fff;
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(30, 136, 229, 0.1);
@@ -18,7 +18,7 @@
   align-items: center;
 }
 
-.employer-title {
+.parttimer-title {
   font-size: 2rem;
   font-weight: 700;
   color: #1976d2;
@@ -27,7 +27,7 @@
   letter-spacing: 1px;
 }
 
-.employer-content {
+.parttimer-content {
   width: 100%;
   text-align: center;
   margin-bottom: 2rem;
@@ -36,7 +36,7 @@
   font-weight: 500;
 }
 
-.employer-nav {
+.parttimer-nav {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -49,7 +49,7 @@
   z-index: 10;
 }
 
-.employer-nav button {
+.parttimer-nav button {
   background: #1976d2;
   border: none;
   color: #fff;
@@ -62,25 +62,25 @@
   box-shadow: 0 2px 8px rgba(30, 136, 229, 0.08);
 }
 
-.employer-nav button.active,
-.employer-nav button:hover {
+.parttimer-nav button.active,
+.parttimer-nav button:hover {
   background: #1565c0;
   color: #fff;
   transform: translateY(-2px) scale(1.03);
 }
 
 @media (min-width: 600px) {
-  .employer-card {
+  .parttimer-card {
     max-width: 420px;
     padding: 3rem 2rem 7rem 2rem;
   }
-  .employer-nav {
+  .parttimer-nav {
     max-width: 600px;
     left: 50%;
     transform: translateX(-50%);
     border-radius: 0 0 18px 18px;
   }
-  .employer-nav button {
+  .parttimer-nav button {
     padding: 1rem 0.7rem;
     font-size: 1.2rem;
   }
@@ -121,4 +121,23 @@ small {
 .smaller {
   font-size: 0.9rem;
   color: #888;
+}
+
+.location-input {
+  margin-left: 0.5rem;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.edit-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 6px 12px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }

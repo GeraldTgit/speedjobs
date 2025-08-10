@@ -13,9 +13,9 @@ function App() {
       <Route path="/home" element={<Home />} />
       <Route path="/part-timer" element={<PartTimer />} />
       <Route path="/employer" element={<Employer />} />
-      <Route path="/job" element={<ListJob />} />
-      <Route path="/part-timer/job/:id" element={<JobDetails />} />
-      <Route path="/employer/job/:id" element={<ListJob />} />
+      <Route path="/job/:id?" element={<ListJob />} />
+      <Route path="/part-timer/job/:id?" element={<JobDetails />} />
+      <Route path="/employer/job/:id?" element={<ListJob />} />
       {/* other routes */}
     </Routes>
   );

@@ -27,7 +27,8 @@
   letter-spacing: 1px;
 }
 
-.list-job-form input {
+.list-job-form input,
+select {
   padding: 0.8rem;
   border-radius: 10px;
   border: 1px solid #bbdefb;
@@ -45,7 +46,8 @@
   margin: 0%;
 }
 
-.list-job-form textarea {
+.list-job-form textarea,
+select {
   padding: 0.8rem;
   border-radius: 10px;
   border: 1px solid #bbdefb;

@@ -18,16 +18,39 @@ export default function ListJob() {
     long_desc: "",
   });
 
-  const { id } = useParams(); // Get job ID from URL
+  const [categories, setCategories] = useState([]);
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [isCustomShortDesc, setIsCustomShortDesc] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+
+  const { id } = useParams();
   const location = useLocation();
   const isPartTimer = location.pathname.startsWith("/part-timer");
 
+  const current = categories.find(
+    (c) => String(c.id) === String(selectedCategoryId)
+  );
+  const shortDescOptions = current ? current.short_descs : [];
+
+  // Fetch categories + short descriptions
   useEffect(() => {
-    if (id) {
+    axios
+      .get("http://127.0.0.1:8000/api/joblist/get_categories_with_short_descs")
+      .then((res) => {
+        setCategories(res.data);
+      })
+      .catch((err) =>
+        console.error("Failed to load categories + short descs", err)
+      );
+  }, []);
+
+  // Fetch job for editing
+  useEffect(() => {
+    if (id != null && typeof id === "string" && id.trim().length > 0) {
       const token = localStorage.getItem("token");
       axios
         .get(`http://127.0.0.1:8000/api/joblist/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => {
           setForm(res.data.job);
@@ -36,6 +59,17 @@ export default function ListJob() {
     }
   }, [id]);
 
+  useEffect(() => {
+    // auto-fill only when short_desc is a selected option (not the "Other" typed case)
+    if (!isCustomShortDesc && form.short_desc && form.short_desc.trim() !== "") {
+      fetchLongDesc(form.short_desc);
+    } else if (isCustomShortDesc) {
+      // user typed their own short_desc — clear or keep existing long_desc editable
+      setForm(prev => ({ ...prev, long_desc: "" }));
+    }
+  }, [form.short_desc, isCustomShortDesc]);
+
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -43,10 +77,46 @@ export default function ListJob() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCategoryChange = (e) => {
+    const value = e.target.value;
+    if (value === "__other__") {
+      setIsCustomCategory(true);
+      setSelectedCategoryId("");
+      setForm((prev) => ({ ...prev, category: "" }));
+    } else {
+      setIsCustomCategory(false);
+      setSelectedCategoryId(value);
+      const cat = categories.find((c) => String(c.id) === String(value));
+      setForm((prev) => ({
+        ...prev,
+        category: cat ? cat.category : "",
+      }));
+    }
+  };
+
+  // helper to fetch long_desc
+  const fetchLongDesc = async (shortDesc) => {
+    if (!shortDesc) {
+      setForm(prev => ({ ...prev, long_desc: "" }));
+      return;
+    }
+
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/api/joblist/get_long_desc", {
+        params: { short_desc: shortDesc }
+      });
+      setForm(prev => ({ ...prev, long_desc: res.data.long_desc || "" }));
+    } catch (err) {
+      console.error("Failed to fetch long description", err);
+      // keep long_desc as-is or clear it:
+      // setForm(prev => ({ ...prev, long_desc: "" }));
+    }
+  };
+
+
   const handleSave = async (e) => {
     e.preventDefault();
 
-    // Restrict save for part-timer URLs
     if (isPartTimer) {
       alert("Part-timers are not allowed to edit jobs.");
       return;
@@ -54,18 +124,21 @@ export default function ListJob() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/api/joblist/listNewJob", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...form,
-          break_: parseFloat(form.break || 0),
-          salary: parseFloat(form.salary),
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:8000/api/joblist/listNewJob",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...form,
+            break_: parseFloat(form.break || 0),
+            salary: parseFloat(form.salary),
+          }),
+        }
+      );
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Failed to save job");
@@ -87,24 +160,80 @@ export default function ListJob() {
         <h2>{id ? "Edit Job" : "List a Job"}</h2>
         {id && <p className="job-id">Job ID: {id}</p>}
 
-        <input
-          type="text"
-          name="category"
-          placeholder="Category"
-          value={form.category || ""}
-          onChange={handleChange}
-          required
-          disabled={isPartTimer}
-        />
-        <input
-          type="text"
+        {/* Category dropdown with custom option */}
+        {!isPartTimer && (
+          <>
+            <select
+              value={isCustomCategory ? "__other__" : selectedCategoryId}
+              onChange={handleCategoryChange}
+            >
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.category}
+                </option>
+              ))}
+              <option value="__other__">Other (type your own)</option>
+            </select>
+
+            {isCustomCategory && (
+              <input
+                type="text"
+                name="category"
+                placeholder="Enter custom category"
+                value={form.category}
+                onChange={handleChange}
+                required
+              />
+            )}
+          </>
+        )}
+        {isPartTimer && (
+          <input
+            type="text"
+            name="category"
+            placeholder="Category"
+            value={form.category || ""}
+            onChange={handleChange}
+            disabled
+          />
+        )}
+
+        {/* Short description dropdown with custom option */}
+        <select
           name="short_desc"
-          placeholder="Short Description"
-          value={form.short_desc || ""}
-          onChange={handleChange}
-          required
-          disabled={isPartTimer}
-        />
+          value={isCustomShortDesc ? "__other__" : form.short_desc}
+          onChange={(e) => {
+            if (e.target.value === "__other__") {
+              setIsCustomShortDesc(true);
+              setForm((prev) => ({ ...prev, short_desc: "" }));
+            } else {
+              setIsCustomShortDesc(false);
+              setForm((prev) => ({ ...prev, short_desc: e.target.value }));
+            }
+          }}
+        >
+          <option value="">Select short description</option>
+          {shortDescOptions.map((sd, i) => (
+            <option key={i} value={sd}>
+              {sd}
+            </option>
+          ))}
+          <option value="__other__">Other (type your own)</option>
+        </select>
+
+        {isCustomShortDesc && (
+          <input
+            type="text"
+            name="short_desc"
+            placeholder="Enter custom short description"
+            value={form.short_desc}
+            onChange={handleChange}
+            required
+          />
+        )}
+
+        {/* Location */}
         <input
           type="text"
           name="location"
@@ -114,6 +243,8 @@ export default function ListJob() {
           required
           disabled={isPartTimer}
         />
+
+        {/* Dates */}
         <p className="duration-text">Start Date:</p>
         <input
           type="date"
@@ -133,33 +264,7 @@ export default function ListJob() {
           disabled={isPartTimer}
         />
 
-        {/* Duration difference and warning */}
-        {form.duration_from && form.duration_upto && (() => {
-          const from = new Date(form.duration_from);
-          const to = new Date(form.duration_upto);
-          if (from > to) {
-            return (
-              <div style={{ color: "#e53935", marginBottom: "0.5rem", fontWeight: "600" }}>
-                Warning: "From" date/time is later than "To" date/time!
-              </div>
-            );
-          } else if (from.getTime() === to.getTime()) {
-            return (
-              <div style={{ color: "#1976d2", marginBottom: "0.5rem", fontWeight: "500" }}>
-                Duration: Less than a day only
-              </div>
-            );
-          } else {
-            const diffMs = to - from;
-            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-            return (
-              <div style={{ color: "#1976d2", marginBottom: "0.5rem", fontWeight: "500" }}>
-                Duration: {diffDays} day(s)
-              </div>
-            );
-          }
-        })()}
-
+        {/* Shift times */}
         <p className="duration-text">Shift starts at:</p>
         <input
           type="time"
@@ -187,35 +292,7 @@ export default function ListJob() {
           disabled={isPartTimer}
         />
 
-        {/* Duration difference and warning */}
-        {form.start_of_shift && form.end_of_shift && (() => {
-          const [startHours, startMinutes] = form.start_of_shift.split(":").map(Number);
-          const [endHours, endMinutes] = form.end_of_shift.split(":").map(Number);
-          const start = new Date(0, 0, 0, startHours, startMinutes, 0);
-          const end = new Date(0, 0, 0, endHours, endMinutes, 0);
-
-          if (start > end) {
-            return (
-              <div style={{ color: "#e53935", marginBottom: "0.5rem", fontWeight: "600" }}>
-                Warning: Start of shift is later than End of shift!
-              </div>
-            );
-          } else {
-            let diffMs = end - start;
-            const breakHours = parseFloat(form.break) || 0;
-            const breakMs = breakHours * 60 * 60 * 1000;
-            diffMs = Math.max(0, diffMs - breakMs);
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-            const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
-
-            return (
-              <div style={{ color: "#1976d2", marginBottom: "0.5rem", fontWeight: "500" }}>
-                Duration (less break): {diffHours} hour(s) {diffMinutes} minute(s)
-              </div>
-            );
-          }
-        })()}
-
+        {/* Salary */}
         <input
           type="number"
           name="salary"
@@ -233,6 +310,8 @@ export default function ListJob() {
           onChange={handleChange}
           disabled={isPartTimer}
         />
+
+        {/* Long description */}
         <textarea
           name="long_desc"
           placeholder="Long Description"
@@ -244,8 +323,18 @@ export default function ListJob() {
         />
 
         <div className="list-job-actions">
-          {!isPartTimer && <button type="submit" className="save-btn">Save</button>}
-          <button type="button" className="cancel-btn" onClick={handleCancel}>Cancel</button>
+          {!isPartTimer && (
+            <button type="submit" className="save-btn">
+              Save
+            </button>
+          )}
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={handleCancel}
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </div>

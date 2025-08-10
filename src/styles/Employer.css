@@ -63,12 +63,12 @@
 }
 
 .employer-image {
-  width: "96px";
-  height: "96px";
-  border-radius: "50%";
-  object-fit: "cover";
-  margin-bottom: "1rem";
-  border: "2px solid #1976d2";
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  border: 2px solid #1976d2;
 }
 
 .employer-nav button.active,
@@ -78,23 +78,72 @@
   transform: translateY(-2px) scale(1.03);
 }
 
-@media (min-width: 600px) {
-  .employer-card {
-    max-width: 420px;
-    padding: 3rem 2rem 7rem 2rem;
-  }
-  .employer-nav {
-    max-width: 600px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 0 0 18px 18px;
-  }
-  .employer-nav button {
-    padding: 1rem 0.7rem;
-    font-size: 1.2rem;
-  }
+/* Buttons - Mobile First */
+.btn {
+  flex: 1;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  display: inline-block;
+  text-align: center;
 }
 
+.btn-primary {
+  background-color: #4caf50;
+  color: #fff;
+}
+.btn-primary:hover {
+  background-color: #43a047;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: #9e9e9e;
+  color: #fff;
+}
+.btn-secondary:hover {
+  background-color: #757575;
+  transform: translateY(-1px);
+}
+
+.btn-toggle {
+  background-color: #2196f3;
+  color: #fff;
+}
+.btn-toggle.hide {
+  background-color: #f44336;
+}
+.btn-toggle:hover {
+  filter: brightness(0.9);
+  transform: translateY(-1px);
+}
+
+.edit-btn-container {
+  margin: 1rem 0;
+  width: 100%;
+}
+
+/* Form fields */
+input[type="text"],
+textarea {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  margin-top: 0.4rem;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+/* Job cards */
 .job-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -139,26 +188,7 @@ small {
   border-radius: 4px;
 }
 
-.edit-btn {
-  flex: 1;
-  padding: "0.6rem 1.2rem";
-  background-color: "#4caf50";
-  color: "white";
-  border: "none";
-  border-radius: "5px";
-  cursor: "pointer";
-}
-
-.cancel-btn {
-  flex: 1;
-  padding: "0.6rem 1.2rem";
-  background-color: "#f44336";
-  color: "white";
-  border: "none";
-  border-radius: "5px";
-  cursor: "pointer";
-}
-
+/* Part-timer cards */
 .prtmr-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -189,4 +219,30 @@ small {
   font-size: 1.2rem;
   color: #010911;
   margin-bottom: 0.5rem;
+}
+
+/* Larger screens */
+@media (min-width: 600px) {
+  .employer-card {
+    max-width: 420px;
+    padding: 3rem 2rem 7rem 2rem;
+  }
+  .employer-nav {
+    max-width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 0 0 18px 18px;
+  }
+  .employer-nav button {
+    padding: 1rem 0.7rem;
+    font-size: 1.2rem;
+  }
+  .btn {
+    font-size: 1.05rem;
+    padding: 0.7rem 1.4rem;
+  }
+  input[type="text"],
+  textarea {
+    font-size: 1rem;
+  }
 }
